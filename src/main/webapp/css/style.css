@@ -1,0 +1,134 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.container {
+    background-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    padding: 50px;
+    text-align: center;
+    max-width: 900px;
+    width: 90%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+h1 {
+    color: #fff;
+    font-size: 3.5rem;
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.tagline {
+    font-size: 1.6rem;
+    color: #a0d2ff;
+    margin-bottom: 40px;
+    font-weight: 300;
+}
+
+.features {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    margin: 40px 0;
+    flex-wrap: wrap;
+}
+
+.feature-card {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 15px;
+    padding: 25px;
+    width: 180px;
+    transition: transform 0.3s ease, background 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.feature-icon {
+    font-size: 3rem;
+    color: #4dabf7;
+    margin-bottom: 15px;
+}
+
+.feature-text {
+    font-size: 1.1rem;
+    color: #e0f0ff;
+}
+
+.stats {
+    display: flex;
+    justify-content: space-around;
+    margin: 40px 0;
+    flex-wrap: wrap;
+    color: #fff;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 15px;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #4dabf7;
+}
+
+.stat-label {
+    font-size: 1rem;
+    color: #a0d2ff;
+}
+
+.cta-button {
+    background: linear-gradient(to right, #4dabf7, #339af0);
+    color: white;
+    border: none;
+    padding: 18px 45px;
+    font-size: 1.3rem;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+    font-weight: 600;
+}
+
+.cta-button:hover {
+    background: linear-gradient(to right, #339af0, #4dabf7);
+    transform: scale(1.08);
+    box-shadow: 0 8px 25px rgba(52, 152, 219, 0.6);
+}
+
+.footer {
+    margin-top: 40px;
+    color: #a0d2ff;
+    font-size: 1rem;
+    text-align: center;
+}
+
+.parking-icon {
+    font-size: 6rem;
+    margin-bottom: 20px;
+    color: #4dabf7;
+    text-shadow: 0 0 20px rgba(77, 171, 247, 0.5);
+}
