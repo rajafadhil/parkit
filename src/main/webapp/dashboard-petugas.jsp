@@ -15,13 +15,18 @@
     Double todayRevenue = (Double) session.getAttribute("todayRevenue");
     if (activeVehicles == null) activeVehicles = 0;
     if (todayRevenue == null) todayRevenue = 0.0;
+
+    java.util.List<java.util.Map<String, Object>> parkedVehicles =
+        (java.util.List<java.util.Map<String, Object>>) session.getAttribute("parkedVehicles");
 %>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="webtoken" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ParkIT - Dashboard Petugas</title>
+
     <style>
         * {
             margin: 0;
@@ -34,12 +39,7 @@
             background: linear-gradient(135deg, #0c4a6e, #1d4ed8);
             color: #fff;
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
             padding: 20px;
-            position: relative;
         }
 
         .container {
@@ -48,84 +48,55 @@
             border-radius: 20px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
             padding: 40px;
-            text-align: center;
-            max-width: 900px;
-            width: 90%;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            margin-top: 60px;
+            max-width: 1000px;
+            margin: auto;
         }
 
         h1 {
-            color: #fff;
-            font-size: 3rem;
-            margin-bottom: 15px;
-            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
-        }
-
-        .welcome {
-            font-size: 1.3rem;
-            color: #a0d2ff;
-            margin-bottom: 30px;
-            font-weight: 500;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
         }
 
         .notification {
+            background: #dcfce7;
+            color: #059669;
             padding: 12px;
             border-radius: 8px;
             margin-bottom: 20px;
-            font-weight: 600;
             text-align: center;
-            background: #dcfce7;
-            color: #059669;
+            font-weight: bold;
         }
 
         .stats {
             display: flex;
             justify-content: space-around;
-            margin: 40px 0;
-            flex-wrap: wrap;
-        }
-
-        .stat-item {
-            text-align: center;
-            padding: 15px;
+            margin-bottom: 30px;
         }
 
         .stat-number {
-            font-size: 2.5rem;
-            font-weight: bold;
+            font-size: 2.2rem;
             color: #4dabf7;
-        }
-
-        .stat-label {
-            font-size: 1rem;
-            color: #a0d2ff;
+            font-weight: bold;
         }
 
         .form-section {
             background: rgba(0,0,0,0.2);
             padding: 25px;
             border-radius: 15px;
-            margin: 25px 0;
+            margin: 30px 0;
         }
 
         .form-section h3 {
-            margin-bottom: 15px;
             color: #4dabf7;
+            margin-bottom: 15px;
         }
 
         .form-group {
-            margin: 12px 0;
+            margin-bottom: 15px;
             text-align: left;
         }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: #a0d2ff;
-        }
-
-        .form-group input, .form-group select {
+        input, select {
             width: 100%;
             padding: 10px;
             border-radius: 8px;
@@ -140,117 +111,165 @@
             border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
-            margin-top: 10px;
         }
 
-        .btn.out {
-            background: #e74c3c;
+        .btn.out { background: #e74c3c; }
+        .btn.subscribe { background: #2ecc71; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
         }
 
-        .btn.subscribe {
-            background: #2ecc71;
+        th, td {
+            padding: 14px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        th {
+            background: rgba(255,255,255,0.15);
         }
 
         .footer {
             margin-top: 40px;
-            color: #a0d2ff;
-            font-size: 1rem;
             text-align: center;
+            color: #a0d2ff;
         }
     </style>
 </head>
+
 <body>
 
-    <div class="container">
-        <h1>👮 Dashboard Petugas - Selamat datang, <strong><%= username %></strong>!</h1>
+<div class="container">
+    <h1>👮 Dashboard Petugas - Selamat datang, <strong><%= username %></strong>!</h1>
 
-        <% if (msg != null) { %>
-            <div class="notification"><%= msg %></div>
-        <% } %>
+    <% if (msg != null) { %>
+        <div class="notification"><%= msg %></div>
+    <% } %>
 
-        <div class="stats">
-            <div class="stat-item">
-                <div class="stat-number"><%= activeVehicles %></div>
-                <div class="stat-label">Kendaraan Aktif</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number">Rp<%= String.format("%.0f", todayRevenue) %></div>
-                <div class="stat-label">Pendapatan Hari Ini</div>
-            </div>
+    <div class="stats">
+        <div>
+            <div class="stat-number"><%= activeVehicles %></div>
+            Kendaraan Aktif
         </div>
-
-        <div class="form-section">
-            <h3>🅿️ Parkir Masuk</h3>
-            <form action="ParkInServlet" method="post">
-                <div class="form-group">
-                    <label>Plat Nomor</label>
-                    <input type="text" name="licensePlate" placeholder="Contoh: B1234ABC" required>
-                </div>
-                <div class="form-group">
-                    <label>Jenis Kendaraan</label>
-                    <select name="vehicleType" required>
-                        <option value="MOTOR">Motor</option>
-                        <option value="MOBIL">Mobil</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Jenis Spot</label>
-                    <select name="spotType" required>
-                        <option value="REGULER">Reguler</option>
-                        <option value="PREMIUM">Premium</option>
-                        <option value="LANGGANAN">Langganan</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn">Parkir Sekarang</button>
-            </form>
-        </div>
-
-        <div class="form-section">
-            <h3>🚗 Parkir Keluar</h3>
-            <form action="ParkOutServlet" method="post">
-                <div class="form-group">
-                    <label>Plat Nomor</label>
-                    <input type="text" name="licensePlate" placeholder="Masukkan plat" required>
-                </div>
-                <button type="submit" class="btn out">Keluar Sekarang</button>
-            </form>
-        </div>
-        
-        <div class="form-section">
-            <h3>📅 Daftarkan Langganan</h3>
-            <form action="SubscribeServlet" method="post">
-                <div class="form-group">
-                    <label>Plat Nomor</label>
-                    <input type="text" name="licensePlate" placeholder="Plat kendaraan" required>
-                </div>
-                <div class="form-group">
-                    <label>Masa Berlaku (Bulan)</label>
-                    <select name="duration" required>
-                        <option value="1">1 Bulan</option>
-                        <option value="6">6 Bulan</option>
-                        <option value="12">1 Tahun</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn subscribe">Daftar Langganan</button>
-            </form>
+        <div>
+            <div class="stat-number">Rp<%= String.format("%.0f", todayRevenue) %></div>
+            Pendapatan Hari Ini
         </div>
     </div>
 
-    <script>
-        // Otomatis ubah plat nomor jadi kapital
-        document.addEventListener('DOMContentLoaded', function() {
-            const licenseInputs = document.querySelectorAll('input[name="licensePlate"]');
-            licenseInputs.forEach(input => {
-                input.addEventListener('input', function() {
-                    this.value = this.value.toUpperCase();
-                });
-            });
-        });
-    </script>
-
-    <div class="footer">
-        &copy; 2025 ParkIT — Sistem Manajemen Parkir Terminal
+    <!-- PARKIR MASUK -->
+    <div class="form-section">
+        <h3>🅿️ Parkir Masuk</h3>
+        <form action="ParkInServlet" method="post">
+            <div class="form-group">
+                <label>Plat Nomor</label>
+                <input type="text" name="licensePlate" required>
+            </div>
+            <div class="form-group">
+                <label>Jenis Kendaraan</label>
+                <select name="vehicleType" required>
+                    <option value="MOTOR">Motor</option>
+                    <option value="MOBIL">Mobil</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Jenis Spot</label>
+                <select name="spotType" required>
+                    <option value="REGULER">Reguler</option>
+                    <option value="PREMIUM">Premium</option>
+                    <option value="LANGGANAN">Langganan</option>
+                </select>
+            </div>
+            <button type="submit" class="btn">Parkir Sekarang</button>
+        </form>
     </div>
+
+    <!-- PARKIR KELUAR (TIDAK HILANG) -->
+    <div class="form-section">
+        <h3>🚗 Parkir Keluar</h3>
+        <form action="ParkOutServlet" method="post">
+            <div class="form-group">
+                <label>Plat Nomor</label>
+                <input type="text" name="licensePlate" required>
+            </div>
+            <button type="submit" class="btn out">Keluar Sekarang</button>
+        </form>
+    </div>
+
+    <!-- LANGGANAN (TIDAK HILANG) -->
+    <div class="form-section">
+        <h3>📅 Daftarkan Langganan</h3>
+        <form action="SubscribeServlet" method="post">
+            <div class="form-group">
+                <label>Plat Nomor</label>
+                <input type="text" name="licensePlate" required>
+            </div>
+            <div class="form-group">
+                <label>Masa Berlaku</label>
+                <select name="duration" required>
+                    <option value="1">1 Bulan</option>
+                    <option value="6">6 Bulan</option>
+                    <option value="12">1 Tahun</option>
+                </select>
+            </div>
+            <button type="submit" class="btn subscribe">Daftar Langganan</button>
+        </form>
+    </div>
+
+    <!-- TABEL KENDARAAN PARKIR (TAMBAHAN SAJA) -->
+    <div class="form-section">
+        <h3>📋 Kendaraan Sedang Parkir</h3>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Plat</th>
+                    <th>Spot Parkir</th>
+                    <th>Subs</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            <% if (parkedVehicles != null && !parkedVehicles.isEmpty()) {
+                for (java.util.Map<String, Object> v : parkedVehicles) {
+                    String plate = (String) v.get("plate");
+                    String spot = (String) v.get("spotType");
+                    Boolean subs = (Boolean) v.get("subs");
+            %>
+                <tr>
+                    <td><%= plate %></td>
+                    <td><%= spot %></td>
+                    <td><%= subs ? "Ya" : "Tidak" %></td>
+                    <td>
+                        <% if ("PREMIUM".equals(spot) || Boolean.TRUE.equals(subs)) { %>
+                            <button class="btn">Washable</button>
+                        <% } else { %>
+                            -
+                        <% } %>
+                    </td>
+                </tr>
+            <% } } else { %>
+                <tr>
+                    <td colspan="4">Belum ada kendaraan parkir</td>
+                </tr>
+            <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('input[name="licensePlate"]').forEach(i => {
+        i.addEventListener('input', () => i.value = i.value.toUpperCase());
+    });
+</script>
+
+<div class="footer">
+    &copy; 2025 ParkIT — Solusi Parkir Digital Masa Kini.
+</div>
 
 </body>
 </html>

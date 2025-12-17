@@ -29,6 +29,24 @@ public class ParkOutServlet extends HttpServlet {
 
         if (sessionResult != null) {
             session.setAttribute("msg", "✅ Kendaraan " + license + " keluar. Tarif: Rp " + (int) sessionResult.getFee());
+
+            // ================= TAMBAHAN SAJA (UPDATE TABEL) =================
+            java.util.List<java.util.Map<String, Object>> parkedVehicles =
+                (java.util.List<java.util.Map<String, Object>>) session.getAttribute("parkedVehicles");
+
+            if (parkedVehicles != null) {
+                java.util.Iterator<java.util.Map<String, Object>> it = parkedVehicles.iterator();
+                while (it.hasNext()) {
+                    java.util.Map<String, Object> v = it.next();
+                    if (license.equals(v.get("plate"))) {
+                        it.remove();
+                        break;
+                    }
+                }
+                session.setAttribute("parkedVehicles", parkedVehicles);
+            }
+            // ================================================================
+
         } else {
             session.setAttribute("msg", "❌ Kendaraan tidak ditemukan atau tidak sedang parkir.");
         }

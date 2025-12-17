@@ -179,7 +179,8 @@
 
         /* Footer */
         .footer {
-            margin-top: 50px;
+            margin-top: 60px;
+            padding-bottom: 30px;
             color: #a0d2ff;
             font-size: 0.9rem;
             text-align: center;
