@@ -6,9 +6,13 @@
         return;
     }
 
-    // Ambil data transaksi harian
+    // Transaksi parkir harian
     java.util.List<java.util.Map<String, Object>> transactions =
         (java.util.List<java.util.Map<String, Object>>) session.getAttribute("dailyTransactions");
+
+    // Transaksi langganan
+    java.util.List<java.util.Map<String, Object>> subscriptions =
+        (java.util.List<java.util.Map<String, Object>>) session.getAttribute("subscriptionTransactions");
 %>
 
 <!DOCTYPE html>
@@ -29,13 +33,11 @@ body {
     color: #1f2937;
 }
 
-/* ===== LAYOUT ===== */
 .app {
     display: flex;
     min-height: 100vh;
 }
 
-/* ===== SIDEBAR ===== */
 .sidebar {
     width: 260px;
     background: #0f172a;
@@ -52,17 +54,7 @@ body {
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    object-fit: cover;
     margin-bottom: 10px;
-}
-
-.profile h4 {
-    margin: 5px 0;
-}
-
-.profile span {
-    font-size: 13px;
-    color: #cbd5f5;
 }
 
 .menu a {
@@ -72,31 +64,23 @@ body {
     color: #e5e7eb;
     text-decoration: none;
     margin-bottom: 10px;
-    font-weight: 500;
 }
 
 .menu a:hover {
     background: #1e293b;
 }
 
-/* ===== CONTENT ===== */
 .content {
     flex: 1;
     padding: 30px 40px;
 }
 
-/* ===== HEADER ===== */
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.header h1 {
-    margin: 0;
-}
-
-/* ===== BUTTON ===== */
 .btn {
     border: none;
     padding: 10px 18px;
@@ -107,7 +91,6 @@ body {
     background: #2563eb;
 }
 
-/* ===== TABLE ===== */
 .card {
     background: #fff;
     margin-top: 25px;
@@ -138,7 +121,6 @@ th {
     color: #6b7280;
 }
 
-/* ===== PRINT ===== */
 @media print {
     .sidebar, .btn {
         display: none;
@@ -148,82 +130,147 @@ th {
 </head>
 
 <body>
-
 <div class="app">
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-        <div class="profile">
-            <img src="https://i.pravatar.cc/150" alt="Profile">
-            <h4><%= username %></h4>
-            <span>petugas@parkit.com</span>
-        </div>
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="profile">
+        <img src="https://i.pravatar.cc/150">
+        <h4><%= username %></h4>
+        <span>petugas@parkit.com</span>
+    </div>
 
-        <nav class="menu">
-            <a href="dashboard-petugas.jsp">📊 Dashboard</a>
-            <a href="#">🅿️ Slot Parkir</a>
-            <a href="#">📋 Data</a>
-            <a href="laporan.jsp">📄 Laporan</a>
-            <a href="logout.jsp">🚪 Logout</a>
-        </nav>
-    </aside>
+    <nav class="menu">
+        <a href="dashboard-petugas.jsp">📊 Dashboard</a>
+        <a href="#">🅿️ Slot Parkir</a>
+        <a href="laporan.jsp">📄 Laporan</a>
+        <a href="login.jsp">🚪 Logout</a>
+    </nav>
+</aside>
 
-    <!-- CONTENT -->
-    <main class="content">
+<!-- CONTENT -->
+<main class="content">
 
-        <div class="header">
-            <h1>📄 Laporan Transaksi Harian</h1>
-            <button class="btn" onclick="window.print()">💾 Save as PDF</button>
-        </div>
-
-        <div class="card">
-            <table>
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Plat Nomor</th>
-                        <th>Jenis</th>
-                        <th>Spot</th>
-                        <th>Jam Masuk</th>
-                        <th>Jam Keluar</th>
-                        <th>Biaya</th>
-                    </tr>
-                </thead>
-                <tbody>
-                <%
-                    if (transactions != null && !transactions.isEmpty()) {
-                        int no = 1;
-                        for (java.util.Map<String, Object> t : transactions) {
-                %>
-                    <tr>
-                        <td><%= no++ %></td>
-                        <td><%= t.get("plate") %></td>
-                        <td><%= t.get("vehicleType") %></td>
-                        <td><%= t.get("spotType") %></td>
-                        <td><%= t.get("timeIn") %></td>
-                        <td><%= t.get("timeOut") %></td>
-                        <td>Rp<%= t.get("fee") %></td>
-                    </tr>
-                <%
-                        }
-                    } else {
-                %>
-                    <tr>
-                        <td colspan="7">Belum ada transaksi hari ini</td>
-                    </tr>
-                <%
-                    }
-                %>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="footer">
-            &copy; 2025 ParkIT — Laporan Harian
-        </div>
-
-    </main>
+<div class="header">
+    <h1>📄 Laporan Harian</h1>
+    <button class="btn" onclick="window.print()">💾 Save as PDF</button>
 </div>
 
+<!-- ================= TABEL 1 : TRANSAKSI PARKIR ================= -->
+<div class="card">
+<h2>🚗 Transaksi Parkir Harian</h2>
+
+<table>
+<thead>
+<tr>
+    <th>No</th>
+    <th>Plat Nomor</th>
+    <th>Jenis</th>
+    <th>Spot</th>
+    <th>Jam Masuk</th>
+    <th>Jam Keluar</th>
+    <th>Biaya</th>
+</tr>
+</thead>
+
+<tbody>
+<%
+    int totalParkir = 0;
+
+    if (transactions != null && !transactions.isEmpty()) {
+        int no = 1;
+        for (java.util.Map<String, Object> t : transactions) {
+            int fee = Integer.parseInt(String.valueOf(t.get("fee")));
+            totalParkir += fee;
+%>
+<tr>
+    <td><%= no++ %></td>
+    <td><%= t.get("plate") %></td>
+    <td><%= t.get("vehicleType") %></td>
+    <td><%= t.get("spotType") %></td>
+    <td><%= t.get("timeIn") %></td>
+    <td><%= t.get("timeOut") %></td>
+    <td>Rp <%= fee %></td>
+</tr>
+<%
+        }
+%>
+<tr>
+    <td colspan="6" style="text-align:right;font-weight:bold;">TOTAL PARKIR</td>
+    <td style="font-weight:bold;">Rp <%= totalParkir %></td>
+</tr>
+<%
+    } else {
+%>
+<tr>
+    <td colspan="7">Belum ada transaksi parkir</td>
+</tr>
+<%
+    }
+%>
+</tbody>
+</table>
+</div>
+
+<!-- ================= TABEL 2 : LANGGANAN ================= -->
+<div class="card">
+<h2>📌 Pendaftaran Langganan</h2>
+
+<table>
+<thead>
+<tr>
+    <th>No</th>
+    <th>Plat Nomor</th>
+    <th>Jenis Kendaraan</th>
+    <th>Tanggal Mulai</th>
+    <th>Tanggal Berakhir</th>
+    <th>Biaya</th>
+</tr>
+</thead>
+
+<tbody>
+<%
+    int totalLangganan = 0;
+
+    if (subscriptions != null && !subscriptions.isEmpty()) {
+        int no = 1;
+        for (java.util.Map<String, Object> s : subscriptions) {
+            int fee = Integer.parseInt(String.valueOf(s.get("fee")));
+            totalLangganan += fee;
+%>
+<tr>
+    <td><%= no++ %></td>
+    <td><%= s.get("plate") %></td>
+    <td><%= s.get("vehicleType") %></td>
+    <td><%= s.get("startDate") %></td>
+    <td><%= s.get("endDate") %></td>
+    <td>Rp <%= fee %></td>
+</tr>
+<%
+        }
+%>
+<tr>
+    <td colspan="5" style="text-align:right;font-weight:bold;">TOTAL LANGGANAN</td>
+    <td style="font-weight:bold;">Rp <%= totalLangganan %></td>
+</tr>
+<%
+    } else {
+%>
+<tr>
+    <td colspan="6">Belum ada pendaftaran langganan</td>
+</tr>
+<%
+    }
+%>
+</tbody>
+</table>
+</div>
+
+<div class="footer">
+    &copy; 2025 ParkIT — Sistem Parkir Terintegrasi
+</div>
+
+</main>
+</div>
 </body>
 </html>

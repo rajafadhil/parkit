@@ -7,7 +7,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Daftar - ParkIT</title>
+    <title>Register - ParkIT</title>
 
     <% if (success != null) { %>
         <meta http-equiv="refresh" content="3;url=login.jsp">
@@ -23,66 +23,83 @@
 
         body {
             min-height: 100vh;
-            background: linear-gradient(135deg, #1e293b, #0f766e);
+            background: #f1f5f9;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .auth-container {
-            width: 900px;
+        .container {
+            width: 1000px;
             max-width: 95%;
-            background: white;
+            background: #ffffff;
             border-radius: 20px;
-            box-shadow: 0 20px 45px rgba(0,0,0,0.25);
             display: flex;
             overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
         }
 
-        /* BAGIAN KIRI */
-        .auth-left {
+        /* KIRI (SAMA LOGIN) */
+        .left {
             width: 45%;
-            background: linear-gradient(135deg, #0f766e, #1e293b);
+            background: linear-gradient(180deg, #2563eb, #3b82f6);
             color: white;
-            padding: 50px 35px;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             text-align: center;
+            padding: 40px;
         }
 
-        .auth-left img {
-            width: 80px;
+        .logo-box {
+            width: 90px;
+            height: 90px;
+            background: white;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+            font-weight: bold;
+            color: #2563eb;
             margin-bottom: 20px;
         }
 
-        .auth-left h1 {
-            font-size: 34px;
+        .left h1 {
+            font-size: 36px;
             margin-bottom: 10px;
-            letter-spacing: 1px;
         }
 
-        .auth-left p {
+        .left p {
             font-size: 16px;
             opacity: 0.95;
-            line-height: 1.6;
         }
 
-        /* BAGIAN KANAN */
-        .auth-right {
+        /* KANAN */
+        .right {
             width: 55%;
-            padding: 45px 40px;
+            padding: 50px;
+            position: relative;
         }
 
-        .auth-right h2 {
-            color: #1e293b;
-            font-size: 26px;
-            margin-bottom: 20px;
+        .help {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            color: #2563eb;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .right h2 {
+            font-size: 32px;
+            margin-bottom: 30px;
+            color: #0f172a;
         }
 
         .input-group {
-            margin-bottom: 16px;
+            margin-bottom: 18px;
         }
 
         .input-group input {
@@ -96,7 +113,7 @@
         .btn {
             width: 100%;
             padding: 14px;
-            background: linear-gradient(135deg, #0f766e, #14b8a6);
+            background: #2563eb;
             color: white;
             border: none;
             border-radius: 10px;
@@ -112,7 +129,6 @@
             padding: 12px;
             border-radius: 10px;
             margin-bottom: 15px;
-            font-weight: 500;
         }
 
         .success {
@@ -121,37 +137,44 @@
             padding: 12px;
             border-radius: 10px;
             margin-bottom: 15px;
-            font-weight: 500;
         }
 
         .countdown {
-            color: #1e293b;
-            font-weight: 600;
             margin-top: 10px;
+            font-weight: 600;
+            color: #0f172a;
         }
 
-        .auth-right a {
-            color: #0f766e;
-            text-decoration: none;
+        .bottom-text {
+            margin-top: 25px;
+            text-align: center;
+        }
+
+        .bottom-text a {
+            color: #2563eb;
             font-weight: 600;
+            text-decoration: none;
         }
     </style>
 </head>
 
 <body>
 
-<div class="auth-container">
+<div class="container">
 
-    <!-- KIRI: BRANDING -->
-    <div class="auth-left">
-        <img src="logo.png" alt="ParkIT Logo" onerror="this.style.display='none'">
+    <!-- KIRI -->
+    <div class="left">
+        <div class="logo-box">P</div>
         <h1>ParkIT</h1>
-        <p>Solusi Parkir Digital<br>Modern & Efisien</p>
+        <p>Solusi Parkir Digital Modern & Efisien</p>
     </div>
 
-    <!-- KANAN: FORM -->
-    <div class="auth-right">
-        <h2>Daftar Akun Petugas</h2>
+    <!-- KANAN -->
+    <div class="right">
+
+        <a href="#" class="help">Need help?</a>
+
+        <h2>Register</h2>
 
         <% if (error != null) { %>
             <div class="error"><%= error %></div>
@@ -165,26 +188,30 @@
             </div>
             <% session.removeAttribute("regSuccess"); %>
         <% } else { %>
+
             <form method="POST" action="RegisterServlet">
                 <div class="input-group">
                     <input type="text" name="username" placeholder="Username" required>
                 </div>
+
                 <div class="input-group">
                     <input type="email" name="email" placeholder="Email" required>
                 </div>
+
                 <div class="input-group">
-                    <input type="password" name="password" placeholder="Password (min 6 karakter)" required minlength="6">
+                    <input type="password" name="password" placeholder="Password" required>
                 </div>
-                <button type="submit" class="btn">Daftar sebagai Petugas</button>
+
+                <button type="submit" class="btn">REGISTER</button>
             </form>
 
-            <p style="margin-top: 20px; text-align: center;">
-                Sudah punya akun?
-                <a href="login.jsp">Login di sini</a>
-            </p>
-        <% } %>
-    </div>
+            <div class="bottom-text">
+                Sudah punya akun? <a href="login.jsp">Login di sini</a>
+            </div>
 
+        <% } %>
+
+    </div>
 </div>
 
 </body>

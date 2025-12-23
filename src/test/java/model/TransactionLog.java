@@ -1,3 +1,6 @@
+package model;
+
+import model.ParkingSession;
 import java.time.LocalDate;
 import java.util.*;
 

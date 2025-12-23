@@ -1,3 +1,7 @@
+package controller;
+
+import model.ParkingSession;
+import util.ParkingManager;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import javax.servlet.annotation.WebServlet;
@@ -8,7 +12,10 @@ import java.util.List;
 
 @WebServlet("/CheckStatusServlet")
 public class CheckStatusServlet extends HttpServlet {
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         try {
             String license = request.getParameter("licensePlate");
             if (license == null || license.trim().isEmpty()) {
@@ -62,13 +69,12 @@ public class CheckStatusServlet extends HttpServlet {
                       .append("</span></div>");
 
                 // ===============================
-                // HITUNG TARIF (DIPERBAIKI)
+                // HITUNG TARIF
                 // ===============================
                 LocalDateTime now = LocalDateTime.now();
                 long minutes = Duration.between(current.getEntryTime(), now).toMinutes();
 
-                // ✅ PERBAIKAN SATU-SATUNYA:
-                // Minimal dihitung 1 jam agar tidak Rp 0
+                // Minimal 1 jam
                 long hours = Math.max(1, (minutes + 59) / 60);
 
                 String type = current.getVehicleType();
@@ -116,11 +122,7 @@ public class CheckStatusServlet extends HttpServlet {
                 "result",
                 "<div class='result-row'><span class='value' style='color:#e74c3c;'>❌ Terjadi kesalahan sistem.</span></div>"
             );
-            try {
-                request.getRequestDispatcher("status.jsp").forward(request, response);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
+            request.getRequestDispatcher("status.jsp").forward(request, response);
         }
     }
 }

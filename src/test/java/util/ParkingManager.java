@@ -1,8 +1,21 @@
+package util;
+
+import model.SubscriptionSpot;
+import model.Subscription;
+import model.PremiumSpot;
+import model.RegularSpot;
+import model.ParkingSpot;
+import model.ParkingSession;
+import model.Vehicle;
+import model.TransactionLog;
+import model.Parkable;
+
 import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.util.*;
 
 public class ParkingManager implements Parkable {
+
     private List<ParkingSpot> spots;
     private TransactionLog log;
     private Map<String, Vehicle> vehicles;
@@ -22,21 +35,34 @@ public class ParkingManager implements Parkable {
         spots.add(new SubscriptionSpot("S1"));
     }
 
-    // --- Manajemen Kendaraan (Ardan Pratama Y.) ---
+    // --- Manajemen Kendaraan ---
     public boolean registerVehicle(String licensePlate, String type, String ownerName) {
+        // Parameter ownerName dipertahankan untuk kompatibilitas,
+        // tapi TIDAK DIGUNAKAN karena Vehicle tidak punya field ownerName
+        if (licensePlate == null || type == null) {
+            return false;
+        }
         licensePlate = licensePlate.toUpperCase().trim();
-        if (licensePlate.isEmpty() || type == null || ownerName == null) return false;
-        if (vehicles.containsKey(licensePlate)) return false;
-        vehicles.put(licensePlate, new Vehicle(licensePlate, type, ownerName));
+        if (licensePlate.isEmpty()) {
+            return false;
+        }
+        if (vehicles.containsKey(licensePlate)) {
+            return false;
+        }
+
+        // ✅ Hanya gunakan licensePlate dan type
+        vehicles.put(licensePlate, new Vehicle(licensePlate, type));
         return true;
     }
 
     public void registerSubscription(String licensePlate, LocalDate start, LocalDate expiry) {
+        if (licensePlate == null) return;
         licensePlate = licensePlate.toUpperCase().trim();
         subscriptions.put(licensePlate, new Subscription(licensePlate, start, expiry));
     }
 
     public boolean isVehicleRegistered(String licensePlate) {
+        if (licensePlate == null) return false;
         return vehicles.containsKey(licensePlate.toUpperCase());
     }
 
@@ -44,29 +70,37 @@ public class ParkingManager implements Parkable {
     @Override
     public boolean park(Vehicle vehicle, String spotType) {
         if (vehicle == null || spotType == null) return false;
-        String license = vehicle.getLicensePlate().toUpperCase().trim();
+
+        String license = vehicle.getLicensePlate();
+        if (license == null) return false;
+        license = license.toUpperCase().trim();
         if (license.isEmpty()) return false;
 
-        // Daftarkan otomatis jika belum ada
+        // Jika belum terdaftar di manager, daftarkan
         if (!vehicles.containsKey(license)) {
             vehicles.put(license, vehicle);
         }
 
-        // Cegah parkir ganda
-        if (isVehicleActive(license)) return false;
+        if (isVehicleActive(license)) {
+            return false; // Sudah parkir
+        }
 
-        // Cari spot yang sesuai
         ParkingSpot spot = findAvailableSpot(license, spotType);
-        if (spot == null) return false;
+        if (spot == null) {
+            return false;
+        }
 
-        // Parkir
         spot.occupy(vehicle);
+
         ParkingSession session = new ParkingSession(
-            spot.getSpotId(), license, spot.getEntryTime(), vehicle.getType()
+                spot.getSpotId(),
+                license,
+                spot.getEntryTime(),
+                vehicle.getType()
         );
 
-        // ✅ Cuci gratis jika Premium atau Langganan aktif
-        if ("PREMIUM".equals(spotType) || ("LANGGANAN".equals(spotType) && isEligibleSubscription(license))) {
+        if ("PREMIUM".equals(spotType) ||
+            ("LANGGANAN".equals(spotType) && isEligibleSubscription(license))) {
             session.setEligibleForFreeWash(true);
         }
 
@@ -80,37 +114,33 @@ public class ParkingManager implements Parkable {
         licensePlate = licensePlate.toUpperCase().trim();
 
         for (ParkingSpot spot : spots) {
-            if (spot.isOccupied() && 
-                spot.getCurrentVehicle() != null && 
-                licensePlate.equals(spot.getCurrentVehicle().getLicensePlate())) {
+            if (spot.isOccupied()
+                    && spot.getCurrentVehicle() != null
+                    && licensePlate.equals(spot.getCurrentVehicle().getLicensePlate())) {
 
                 LocalDateTime exitTime = LocalDateTime.now();
-                double fee = 0.0;
+                double fee;
 
-                // Hitung tarif
                 if (spot instanceof SubscriptionSpot) {
                     if (isEligibleSubscription(licensePlate)) {
-                        fee = 0.0; // Gratis
+                        fee = 0.0;
                     } else {
-                        // Tidak aktif → hitung sebagai reguler
+                        // Hitung sebagai reguler
                         RegularSpot temp = new RegularSpot("TEMP");
                         temp.occupy(spot.getCurrentVehicle());
-                        temp.entryTime = spot.getEntryTime();
                         fee = temp.calculateFee(spot.getCurrentVehicle(), exitTime);
                     }
                 } else {
                     fee = spot.calculateFee(spot.getCurrentVehicle(), exitTime);
                 }
 
-                // Lepaskan spot
                 spot.release(exitTime);
 
-                // Update session
+                // Update sesi di log
                 for (ParkingSession s : log.getActiveSessions()) {
                     if (licensePlate.equals(s.getLicensePlate())) {
                         s.setExitTime(exitTime);
                         s.setFee(fee);
-                        // Cuci gratis saat keluar tetap sesuai status saat masuk
                         return s;
                     }
                 }
@@ -119,38 +149,47 @@ public class ParkingManager implements Parkable {
         return null;
     }
 
-    // --- Logika Internal ---
+    // --- Internal Logic ---
     private ParkingSpot findAvailableSpot(String licensePlate, String spotType) {
+        if (licensePlate == null || spotType == null) return null;
         licensePlate = licensePlate.toUpperCase();
 
         if ("LANGGANAN".equals(spotType)) {
-            if (!isEligibleSubscription(licensePlate)) return null; // ✅ Cegah akses jika tidak aktif
+            if (!isEligibleSubscription(licensePlate)) return null;
             for (ParkingSpot spot : spots) {
-                if (spot instanceof SubscriptionSpot && spot.isAvailable()) return spot;
+                if (spot instanceof SubscriptionSpot && spot.isAvailable()) {
+                    return spot;
+                }
             }
         } else if ("PREMIUM".equals(spotType)) {
             for (ParkingSpot spot : spots) {
-                if (spot instanceof PremiumSpot && spot.isAvailable()) return spot;
+                if (spot instanceof PremiumSpot && spot.isAvailable()) {
+                    return spot;
+                }
             }
         } else if ("REGULER".equals(spotType)) {
             for (ParkingSpot spot : spots) {
-                if (spot instanceof RegularSpot && spot.isAvailable()) return spot;
+                if (spot instanceof RegularSpot && spot.isAvailable()) {
+                    return spot;
+                }
             }
         }
         return null;
     }
 
     public boolean isEligibleSubscription(String licensePlate) {
-        Subscription sub = subscriptions.get(licensePlate);
+        if (licensePlate == null) return false;
+        Subscription sub = subscriptions.get(licensePlate.toUpperCase());
         return sub != null && sub.isActive();
     }
 
     private boolean isVehicleActive(String licensePlate) {
+        if (licensePlate == null) return false;
         return log.getActiveSessions().stream()
-            .anyMatch(s -> licensePlate.equals(s.getLicensePlate()));
+                .anyMatch(s -> licensePlate.equals(s.getLicensePlate()));
     }
 
-    // --- Getter untuk laporan ---
+    // --- Getter ---
     public int getActiveVehicleCount() {
         return log.getActiveSessions().size();
     }

@@ -1,3 +1,7 @@
+package model;
+
+import model.ParkingSpot;
+import model.Vehicle;
 import java.time.LocalDateTime;
 import java.time.Duration;
 

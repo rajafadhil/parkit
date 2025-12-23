@@ -16,8 +16,15 @@
     if (activeVehicles == null) activeVehicles = 0;
     if (todayRevenue == null) todayRevenue = 0.0;
 
-    java.util.List<java.util.Map<String, Object>> parkedVehicles =
-        (java.util.List<java.util.Map<String, Object>>) session.getAttribute("parkedVehicles");
+    // Aman dari ClassCastException
+    Object parkedObj = session.getAttribute("parkedVehicles");
+    java.util.List<java.util.Map<String, Object>> parkedVehicles = null;
+    if (parkedObj instanceof java.util.List) {
+        parkedVehicles = (java.util.List<java.util.Map<String, Object>>) parkedObj;
+    }
+    if (parkedVehicles == null) {
+        parkedVehicles = new java.util.ArrayList<>();
+    }
 %>
 
 <!DOCTYPE html>
@@ -25,7 +32,6 @@
 <head>
 <meta charset="UTF-8">
 <title>ParkIT - Dashboard Petugas</title>
-
 <style>
 * {
     box-sizing: border-box;
@@ -216,6 +222,7 @@ th {
     <!-- SIDEBAR -->
     <aside class="sidebar">
         <div class="profile">
+            <!-- ✅ Perbaiki URL avatar (hapus spasi) -->
             <img src="https://i.pravatar.cc/150" alt="Profile">
             <h4><%= username %></h4>
             <span>petugas@parkit.com</span>
@@ -224,9 +231,9 @@ th {
         <nav class="menu">
             <a href="#">📊 Dashboard</a>
             <a href="#">🅿️ Slot Parkir</a>
-            <a href="#">📋 Data</a>
             <a href="laporan.jsp">📄 Laporan</a>
-            <a href="login.jsp">🚪 Logout</a>
+            <!-- ✅ Logout via servlet (harus buat LogoutServlet) -->
+            <a href="logout">🚪 Logout</a>
         </nav>
     </aside>
 
@@ -321,26 +328,26 @@ th {
                             </tr>
                         </thead>
                         <tbody>
-                        <% if (parkedVehicles != null && !parkedVehicles.isEmpty()) {
-                            for (java.util.Map<String, Object> v : parkedVehicles) {
-                                String plate = (String) v.get("plate");
-                                String spot = (String) v.get("spotType");
-                                Boolean subs = (Boolean) v.get("subs");
+                        <% for (java.util.Map<String, Object> v : parkedVehicles) {
+                            String plate = (String) v.get("plate");
+                            String spot = (String) v.get("spotType");
+                            Boolean subs = (Boolean) v.get("subs");
                         %>
                         <tr>
                             <td><%= plate %></td>
                             <td><%= spot %></td>
-                            <td><%= subs ? "Ya" : "Tidak" %></td>
+                            <td><%= subs != null && subs ? "Ya" : "Tidak" %></td>
                             <td>
-                                <% if ("PREMIUM".equals(spot) || Boolean.TRUE.equals(subs)) { %>
+                                <% if ("PREMIUM".equals(spot) || (subs != null && subs)) { %>
                                     <button class="btn"
-                                        onclick="washVehicle('<%= spot %>', <%= subs %>)">
+                                        onclick="washVehicle('<%= spot %>', <%= subs != null && subs %>)">
                                         Washable
                                     </button>
                                 <% } else { %>-<% } %>
                             </td>
                         </tr>
-                        <% } } else { %>
+                        <% } %>
+                        <% if (parkedVehicles.isEmpty()) { %>
                         <tr><td colspan="4">Belum ada kendaraan</td></tr>
                         <% } %>
                         </tbody>
@@ -358,6 +365,7 @@ th {
 </div>
 
 <script>
+// Auto uppercase plat
 document.querySelectorAll('input[name="licensePlate"]').forEach(i => {
     i.addEventListener('input', () => i.value = i.value.toUpperCase());
 });

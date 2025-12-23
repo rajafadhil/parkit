@@ -1,3 +1,7 @@
+package model;
+
+import model.ParkingSession;
+import model.Vehicle;
 import java.time.LocalDateTime;
 
 public abstract class ParkingSpot {
