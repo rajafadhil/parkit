@@ -1,0 +1,5 @@
+# Created at 2025-12-24T09:40:23.114
+Boot Manifest-JAR contains absolute paths in classpath 'E:\Belajar PBO\NetBeansProjects\ParkIT\target\test-classes'
+Hint: <argLine>-Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
+'other' has different root
+

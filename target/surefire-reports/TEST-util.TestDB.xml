@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="util.TestDB" time="0.008" tests="0" errors="0" skipped="0" failures="0">
+  <properties>
+    <property name="netbeans.deploy" value="true"/>
+    <property name="java.specification.version" value="24"/>
+    <property name="sun.cpu.isalist" value="amd64"/>
+    <property name="sun.jnu.encoding" value="Cp1252"/>
+    <property name="java.class.path" value="E:\Belajar PBO\NetBeansProjects\ParkIT\target\test-classes;E:\Belajar PBO\NetBeansProjects\ParkIT\target\classes;C:\Users\Ardan P.Y\.m2\repository\javax\servlet\javax.servlet-api\4.0.1\javax.servlet-api-4.0.1.jar;C:\Users\Ardan P.Y\.m2\repository\javax\servlet\jsp\javax.servlet.jsp-api\2.3.3\javax.servlet.jsp-api-2.3.3.jar;C:\Users\Ardan P.Y\.m2\repository\mysql\mysql-connector-java\8.0.30\mysql-connector-java-8.0.30.jar;C:\Users\Ardan P.Y\.m2\repository\com\google\protobuf\protobuf-java\3.19.4\protobuf-java-3.19.4.jar;"/>
+    <property name="java.vm.vendor" value="Azul Systems, Inc."/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="user.variant" value=""/>
+    <property name="exec.appArgs" value=""/>
+    <property name="java.vendor.url" value="http://www.azul.com/"/>
+    <property name="user.timezone" value="Asia/Bangkok"/>
+    <property name="os.name" value="Windows 11"/>
+    <property name="java.vm.specification.version" value="24"/>
+    <property name="user.country" value="ID"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="sun.boot.library.path" value="E:\Belajar PBO\Apache NetBeans\jdk\bin"/>
+    <property name="sun.java.command" value="C:\Users\Ardan P.Y\AppData\Local\Temp\surefire14692377843182974244\surefirebooter-20251230202846310_3.jar C:\Users\Ardan P.Y\AppData\Local\Temp\surefire14692377843182974244 2025-12-30T20-28-46_219-jvmRun1 surefire-20251230202846310_1tmp surefire_0-20251230202846310_2tmp"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="exec.vmArgs" value=""/>
+    <property name="surefire.test.class.path" value="E:\Belajar PBO\NetBeansProjects\ParkIT\target\test-classes;E:\Belajar PBO\NetBeansProjects\ParkIT\target\classes;C:\Users\Ardan P.Y\.m2\repository\javax\servlet\javax.servlet-api\4.0.1\javax.servlet-api-4.0.1.jar;C:\Users\Ardan P.Y\.m2\repository\javax\servlet\jsp\javax.servlet.jsp-api\2.3.3\javax.servlet.jsp-api-2.3.3.jar;C:\Users\Ardan P.Y\.m2\repository\mysql\mysql-connector-java\8.0.30\mysql-connector-java-8.0.30.jar;C:\Users\Ardan P.Y\.m2\repository\com\google\protobuf\protobuf-java\3.19.4\protobuf-java-3.19.4.jar;"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="user.home" value="C:\Users\Ardan P.Y"/>
+    <property name="user.language" value="id"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.version.date" value="2025-07-15"/>
+    <property name="java.home" value="E:\Belajar PBO\Apache NetBeans\jdk"/>
+    <property name="file.separator" value="\"/>
+    <property name="basedir" value="E:\Belajar PBO\NetBeansProjects\ParkIT"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="surefire.real.class.path" value="C:\Users\Ardan P.Y\AppData\Local\Temp\surefire14692377843182974244\surefirebooter-20251230202846310_3.jar"/>
+    <property name="user.script" value=""/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="java.runtime.version" value="24.0.2+12"/>
+    <property name="user.name" value="Ardan P.Y"/>
+    <property name="stdout.encoding" value="Cp1252"/>
+    <property name="path.separator" value=";"/>
+    <property name="os.version" value="10.0"/>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="java.vendor.version" value="Zulu24.32+13-CA"/>
+    <property name="maven.ext.class.path" value="E:\Belajar PBO\Apache NetBeans\java\maven-nblib\netbeans-eventspy.jar"/>
+    <property name="localRepository" value="C:\Users\Ardan P.Y\.m2\repository"/>
+    <property name="java.vendor.url.bug" value="http://www.azul.com/support/"/>
+    <property name="java.io.tmpdir" value="C:\Users\ARDANP~1.Y\AppData\Local\Temp\"/>
+    <property name="java.version" value="24.0.2"/>
+    <property name="user.dir" value="E:\Belajar PBO\NetBeansProjects\ParkIT"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="sun.os.patch.level" value=""/>
+    <property name="native.encoding" value="Cp1252"/>
+    <property name="java.library.path" value="E:\Belajar PBO\Apache NetBeans\jdk\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\Python314\Scripts\;C:\Python314\;C:\Program Files\Common Files\Oracle\Java\javapath;C:\Program Files (x86)\Common Files\Intel\Shared Libraries\redist\intel64\compiler;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\Go\bin;C:\Program Files\dotnet\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;E:\Belajar PHP\php-8.5.0-nts-Win32-vs17-x64;C:\Program Files\Docker\Docker\resources\bin;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\NVIDIA Corporation\NVIDIA app\NvDLISR;C:\Program Files\Git\cmd;C:\xampp\php;C:\ProgramData\ComposerSetup\bin;E:\PHP\nvm;E:\PHP\nodejs;C:\ProgramData\chocolatey\bin;C:\Users\Ardan P.Y\AppData\Local\Programs\Python\Python313\Scripts\;C:\Users\Ardan P.Y\AppData\Local\Programs\Python\Python313\;C:\Users\Ardan P.Y\AppData\Local\Programs\Python\Launcher\;C:\Users\Ardan P.Y\AppData\Local\Microsoft\WindowsApps;C:\Users\Ardan P.Y\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\Ardan P.Y\go\bin;C:\msys64\ucrt64\bin;E:\Build APP\flutter\bin;C:\Users\Ardan P.Y\AppData\Local\spicetify;C:\Users\Ardan P.Y\AppData\Roaming\Composer\vendor\bin;C:\xampp\php;E:\PHP\nvm;E:\PHP\nodejs;E:\PHP\nvm;."/>
+    <property name="java.vm.info" value="mixed mode, sharing"/>
+    <property name="stderr.encoding" value="Cp1252"/>
+    <property name="java.vendor" value="Azul Systems, Inc."/>
+    <property name="java.vm.version" value="24.0.2+12"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="java.class.version" value="68.0"/>
+  </properties>
+</testsuite>
