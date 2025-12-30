@@ -1,16 +1,22 @@
 package controller;
 
-import model.Vehicle;
-import util.ParkingManager;
+import dao.ParkingSpotDAO;
 import dao.VehicleDAO;
+import dao.SubscriptionDAO;
+import model.Vehicle;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @WebServlet("/ParkInServlet")
 public class ParkInServlet extends HttpServlet {
+
+    private static final String[] REGULAR_SPOTS = {"R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10"};
+    private static final String[] PREMIUM_SPOTS = {"P1", "P2", "P3", "P4", "P5"};
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -18,130 +24,108 @@ public class ParkInServlet extends HttpServlet {
 
         HttpSession session = request.getSession();
 
-        // Ambil atau inisialisasi ParkingManager di application scope
-        ParkingManager manager =
-                (ParkingManager) getServletContext().getAttribute("manager");
-        if (manager == null) {
-            manager = new ParkingManager();
-            getServletContext().setAttribute("manager", manager);
-        }
-
-        VehicleDAO vehicleDAO = new VehicleDAO();
-
-        // Ambil parameter
         String license = request.getParameter("licensePlate");
         String type = request.getParameter("vehicleType");
-        String spotType = request.getParameter("spotType");
+        String spotTypeParam = request.getParameter("spotType");
 
-        // Validasi input
-        if (license == null || type == null || spotType == null ||
+        if (license == null || type == null || spotTypeParam == null ||
             license.trim().isEmpty() || type.trim().isEmpty()) {
             session.setAttribute("msg", "❌ Semua field wajib diisi.");
             response.sendRedirect("dashboard-petugas.jsp");
             return;
         }
 
-        // Normalisasi input
         license = license.trim().toUpperCase();
         type = type.trim().toUpperCase();
-        spotType = spotType.trim().toUpperCase();
+        String spotType = spotTypeParam.trim().toUpperCase();
 
-        // Validasi jenis kendaraan
-        if (!"MOTOR".equals(type) && !"MOBIL".equals(type)) {
-            session.setAttribute("msg", "❌ Jenis kendaraan harus MOTOR atau MOBIL.");
-            response.sendRedirect("dashboard-petugas.jsp");
-            return;
-        }
+        // ========== 1. CEK / SIMPAN VEHICLE ==========
+        VehicleDAO vehicleDAO = new VehicleDAO();
+        int vehicleId = vehicleDAO.getVehicleIdByPlate(license);
 
-        // Validasi jenis spot
-        if (!"REGULER".equals(spotType)
-                && !"PREMIUM".equals(spotType)
-                && !"LANGGANAN".equals(spotType)) {
-            session.setAttribute("msg",
-                    "❌ Jenis spot harus REGULER, PREMIUM, atau LANGGANAN.");
-            response.sendRedirect("dashboard-petugas.jsp");
-            return;
-        }
-
-        // ==================== SIMPAN KE DATABASE ====================
-        try {
-            System.out.println("🔍 [ParkInServlet] Mengecek plat: " + license);
-            boolean existsInDB = vehicleDAO.existsByPlate(license);
-            System.out.println("🔍 [ParkInServlet] Plat ditemukan di DB: " + existsInDB);
-
-            if (!existsInDB) {
-                System.out.println("🆕 [ParkInServlet] Menyimpan plat baru ke DB: " + license);
-                Vehicle newVehicle = new Vehicle(license, type);
-                boolean inserted = vehicleDAO.insertVehicle(newVehicle);
-                if (!inserted) {
-                    throw new RuntimeException("Gagal insert ke tabel vehicles");
-                }
-                System.out.println("✅ [ParkInServlet] Berhasil simpan ke DB");
-            } else {
-                System.out.println("ℹ️ [ParkInServlet] Plat sudah ada di DB, lewati insert");
+        if (vehicleId == -1) {
+            // Belum ada → daftarkan
+            Vehicle vehicle = new Vehicle(license, type);
+            if (!vehicleDAO.insertVehicle(vehicle)) {
+                session.setAttribute("msg", "❌ Gagal menyimpan kendaraan ke database.");
+                response.sendRedirect("dashboard-petugas.jsp");
+                return;
             }
-        } catch (Exception e) {
-            System.err.println("💥 [ParkInServlet] ERROR saat simpan ke DB: " + e.getMessage());
-            e.printStackTrace();
-            session.setAttribute("msg", "❌ Gagal menyimpan kendaraan ke database.");
-            response.sendRedirect("dashboard-petugas.jsp");
-            return;
-        }
-        // ==========================================================
-
-        // Daftarkan ke ParkingManager (di memori)
-        if (!manager.isVehicleRegistered(license)) {
-            manager.registerVehicle(license, type, ""); // ownerName diabaikan
-        }
-
-        // Buat objek kendaraan untuk parkir
-        Vehicle vehicle;
-        try {
-            vehicle = new Vehicle(license, type);
-        } catch (Exception e) {
-            session.setAttribute("msg", "❌ Data kendaraan tidak valid.");
-            response.sendRedirect("dashboard-petugas.jsp");
-            return;
-        }
-
-        // Proses parkir
-        boolean success = manager.park(vehicle, spotType);
-
-        if (success) {
-            session.setAttribute("msg",
-                    "✅ Kendaraan " + license + " berhasil parkir di spot " + spotType + "!");
-
-            // Update session untuk tampilan
-            java.util.List<java.util.Map<String, Object>> parkedVehicles =
-                (java.util.List<java.util.Map<String, Object>>)
-                    session.getAttribute("parkedVehicles");
-
-            if (parkedVehicles == null) {
-                parkedVehicles = new java.util.ArrayList<>();
-            }
-
-            java.util.Map<String, Object> row = new java.util.HashMap<>();
-            row.put("plate", license);
-            row.put("spot", spotType);
-            row.put("subs", "LANGGANAN".equals(spotType));
-            row.put("spotType", spotType);
-
-            parkedVehicles.add(row);
-            session.setAttribute("parkedVehicles", parkedVehicles);
-
-        } else {
-            if ("LANGGANAN".equals(spotType)) {
-                session.setAttribute("msg",
-                    "❌ Gagal parkir di LANGGANAN. Pastikan kendaraan memiliki langganan aktif.");
-            } else {
-                session.setAttribute("msg",
-                    "❌ Gagal parkir. Tidak ada spot " + spotType + " yang tersedia.");
+            vehicleId = vehicleDAO.getVehicleIdByPlate(license);
+            if (vehicleId == -1) {
+                session.setAttribute("msg", "❌ Gagal mendapatkan ID kendaraan.");
+                response.sendRedirect("dashboard-petugas.jsp");
+                return;
             }
         }
 
-        session.setAttribute("activeVehicles", manager.getActiveVehicleCount());
-        session.setAttribute("todayRevenue", manager.getTodayRevenue());
+        // ========== 2. CEK LANGGANAN ==========
+        if ("LANGGANAN".equals(spotType)) {
+            SubscriptionDAO subscriptionDAO = new SubscriptionDAO();
+            if (!subscriptionDAO.hasActiveSubscription(vehicleId)) {
+                session.setAttribute("msg", "❌ Kendaraan tidak memiliki langganan aktif.");
+                response.sendRedirect("dashboard-petugas.jsp");
+                return;
+            }
+        }
+
+        // ========== 3. CARI SPOT KOSONG ==========
+        String spotId = findAvailableSpot(spotType);
+        if (spotId == null) {
+            session.setAttribute("msg", "❌ Tidak ada spot tersedia.");
+            response.sendRedirect("dashboard-petugas.jsp");
+            return;
+        }
+
+        // ========== 4. TENTUKAN TIPE SPOT UNTUK DATABASE (SESUAI ENUM) ==========
+        String dbSpotType = "REGULER";
+        if ("PREMIUM".equals(spotType) || "LANGGANAN".equals(spotType)) {
+            dbSpotType = "PREMIUM";
+        }
+
+        // ========== 5. PARKIR (PAKAI DAO) ==========
+        ParkingSpotDAO spotDAO = new ParkingSpotDAO();
+        boolean success = spotDAO.occupySpot(spotId, license, dbSpotType); // ✅ Pakai versi occupySpot yang sudah diperbaiki
+
+        if (!success) {
+            session.setAttribute("msg", "❌ Gagal memproses parkir. Spot mungkin sedang digunakan.");
+            response.sendRedirect("dashboard-petugas.jsp");
+            return;
+        }
+
+        // ========== 6. UPDATE UI ==========
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> parkedVehicles =
+            (List<Map<String, Object>>) session.getAttribute("parkedVehicles");
+
+        if (parkedVehicles == null) {
+            parkedVehicles = new ArrayList<>();
+        }
+
+        Map<String, Object> row = new HashMap<>();
+        row.put("plate", license);
+        row.put("spot", spotId);
+        row.put("subs", "LANGGANAN".equals(spotType));
+        row.put("spotType", spotType);
+
+        parkedVehicles.add(row);
+        session.setAttribute("parkedVehicles", parkedVehicles);
+        session.setAttribute("msg", "✅ Kendaraan " + license + " berhasil parkir di " + spotId);
 
         response.sendRedirect("dashboard-petugas.jsp");
+    }
+
+    // ========== CARI SPOT KOSONG ==========
+    private String findAvailableSpot(String spotType) {
+        ParkingSpotDAO spotDAO = new ParkingSpotDAO();
+        String[] spots = "REGULER".equals(spotType) ? REGULAR_SPOTS : PREMIUM_SPOTS;
+
+        for (String id : spots) {
+            ParkingSpotDAO.SpotData data = spotDAO.getSpotData(id);
+            if (data != null && data.getLicensePlate() == null && data.getEntryTime() == null) {
+                return id;
+            }
+        }
+        return null;
     }
 }

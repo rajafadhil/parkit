@@ -6,8 +6,15 @@ import java.time.LocalDateTime;
 
 public class ParkingSessionDAO {
 
-    // ===== SIMPAN SESI PARKIR MASUK =====
-    public void insertSession(int vehicleId, String spotId, LocalDateTime entryTime) {
+    /**
+     * Menyimpan sesi parkir MASUK ke database (hanya waktu masuk).
+     *
+     * @param vehicleId ID kendaraan (dari tabel vehicles)
+     * @param spotId    ID spot (misal: "P1", "R3")
+     * @param entryTime Waktu masuk
+     * @return true jika berhasil
+     */
+    public boolean insertSessionEntry(int vehicleId, String spotId, LocalDateTime entryTime) {
         String sql = """
             INSERT INTO parking_sessions (vehicle_id, spot_id, entry_time)
             VALUES (?, ?, ?)
@@ -20,21 +27,28 @@ public class ParkingSessionDAO {
             ps.setString(2, spotId);
             ps.setTimestamp(3, Timestamp.valueOf(entryTime));
 
-            ps.executeUpdate();
+            return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
-            System.err.println("❌ Gagal menyimpan sesi parkir: " + e.getMessage());
+            System.err.println("❌ Gagal menyimpan sesi MASUK: " + e.getMessage());
             e.printStackTrace();
+            return false;
         }
     }
 
-    // ===== TUTUP SESI PARKIR KELUAR (AMAN DENGAN SPOT_ID) =====
-    public void closeSession(String spotId, int vehicleId, LocalDateTime exitTime, double fee) {
+    /**
+     * Memperbarui sesi parkir saat KELUAR (isi exit_time dan fee).
+     *
+     * @param vehicleId ID kendaraan
+     * @param exitTime  Waktu keluar
+     * @param fee       Biaya parkir
+     * @return true jika berhasil
+     */
+    public boolean updateSessionExit(int vehicleId, LocalDateTime exitTime, double fee) {
         String sql = """
             UPDATE parking_sessions
             SET exit_time = ?, fee = ?
             WHERE vehicle_id = ?
-              AND spot_id = ?
               AND exit_time IS NULL
         """;
 
@@ -44,17 +58,79 @@ public class ParkingSessionDAO {
             ps.setTimestamp(1, Timestamp.valueOf(exitTime));
             ps.setDouble(2, fee);
             ps.setInt(3, vehicleId);
-            ps.setString(4, spotId);
 
-            int rowsAffected = ps.executeUpdate();
-            if (rowsAffected == 0) {
-                System.err.println("⚠️ Tidak ada sesi aktif ditemukan untuk kendaraan ID=" + 
-                    vehicleId + " di spot " + spotId);
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                System.err.println("⚠️ Tidak ada sesi aktif ditemukan untuk kendaraan ID: " + vehicleId);
             }
+            return rows > 0;
 
         } catch (SQLException e) {
-            System.err.println("❌ Gagal menutup sesi parkir: " + e.getMessage());
+            System.err.println("❌ Gagal memperbarui sesi KELUAR: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * (Opsional) Menyimpan sesi lengkap sekaligus — hanya untuk testing.
+     */
+    public boolean saveCompleteSession(
+            int vehicleId,
+            String spotId,
+            LocalDateTime entryTime,
+            LocalDateTime exitTime,
+            double fee) {
+
+        String sql = """
+            INSERT INTO parking_sessions (vehicle_id, spot_id, entry_time, exit_time, fee)
+            VALUES (?, ?, ?, ?, ?)
+        """;
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, vehicleId);
+            ps.setString(2, spotId);
+            ps.setTimestamp(3, Timestamp.valueOf(entryTime));
+            ps.setTimestamp(4, Timestamp.valueOf(exitTime));
+            ps.setDouble(5, fee);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("❌ Gagal menyimpan sesi lengkap: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Menghitung total pendapatan hari ini dari database.
+     * Hanya menjumlahkan sesi yang sudah selesai (exit_time IS NOT NULL)
+     * dan dimulai hari ini.
+     *
+     * @return total pendapatan hari ini, atau 0.0 jika tidak ada
+     */
+    public double getTodayRevenue() {
+        String sql = """
+            SELECT COALESCE(SUM(fee), 0)
+            FROM parking_sessions
+            WHERE DATE(entry_time) = CURDATE()
+              AND exit_time IS NOT NULL
+        """;
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                return rs.getDouble(1);
+            }
+        } catch (SQLException e) {
+            System.err.println("❌ Gagal mengambil pendapatan hari ini: " + e.getMessage());
             e.printStackTrace();
         }
+        return 0.0;
     }
 }

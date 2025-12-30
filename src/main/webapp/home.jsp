@@ -106,6 +106,7 @@
             justify-content: center;
             gap: 20px;
             margin-top: 30px;
+            flex-wrap: wrap;
         }
 
         .btn {
@@ -134,6 +135,15 @@
 
         .btn-login-hero:hover {
             background: #217dbb;
+        }
+
+        .btn-status-hero {
+            background: #9b59b6;
+            color: white;
+        }
+
+        .btn-status-hero:hover {
+            background: #8e44ad;
         }
 
         /* Features Section */
@@ -205,6 +215,7 @@
         <div class="hero-cta">
             <a href="register.jsp" class="btn btn-register-hero">Register</a>
             <a href="login.jsp" class="btn btn-login-hero">Login</a>
+            <a href="status.jsp" class="btn btn-status-hero">Cek Status</a>
         </div>
     </div>
 

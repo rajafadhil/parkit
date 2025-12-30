@@ -16,7 +16,7 @@
     if (activeVehicles == null) activeVehicles = 0;
     if (todayRevenue == null) todayRevenue = 0.0;
 
-    // Aman dari ClassCastException
+    // ✅ Aman dari ClassCastException
     Object parkedObj = session.getAttribute("parkedVehicles");
     java.util.List<java.util.Map<String, Object>> parkedVehicles = null;
     if (parkedObj instanceof java.util.List) {
@@ -32,6 +32,7 @@
 <head>
 <meta charset="UTF-8">
 <title>ParkIT - Dashboard Petugas</title>
+
 <style>
 * {
     box-sizing: border-box;
@@ -222,7 +223,7 @@ th {
     <!-- SIDEBAR -->
     <aside class="sidebar">
         <div class="profile">
-            <!-- ✅ Perbaiki URL avatar (hapus spasi) -->
+            <!-- ✅ Perbaiki URL avatar: HAPUS SPASI -->
             <img src="https://i.pravatar.cc/150" alt="Profile">
             <h4><%= username %></h4>
             <span>petugas@parkit.com</span>
@@ -230,10 +231,9 @@ th {
 
         <nav class="menu">
             <a href="#">📊 Dashboard</a>
-            <a href="#">🅿️ Slot Parkir</a>
             <a href="laporan.jsp">📄 Laporan</a>
-            <!-- ✅ Logout via servlet (harus buat LogoutServlet) -->
-            <a href="logout">🚪 Logout</a>
+            <!-- ✅ Logout via servlet -->
+            <a href="login.jsp">🚪 Logout</a>
         </nav>
     </aside>
 
@@ -328,26 +328,27 @@ th {
                             </tr>
                         </thead>
                         <tbody>
-                        <% for (java.util.Map<String, Object> v : parkedVehicles) {
-                            String plate = (String) v.get("plate");
-                            String spot = (String) v.get("spotType");
-                            Boolean subs = (Boolean) v.get("subs");
+                        <% if (!parkedVehicles.isEmpty()) {
+                            for (java.util.Map<String, Object> v : parkedVehicles) {
+                                String plate = (String) v.get("plate");
+                                String spot = (String) v.get("spot"); // Gunakan spot ID
+                                Boolean subs = (Boolean) v.get("subs");
+                                String spotType = (String) v.get("spotType");
                         %>
                         <tr>
                             <td><%= plate %></td>
                             <td><%= spot %></td>
                             <td><%= subs != null && subs ? "Ya" : "Tidak" %></td>
                             <td>
-                                <% if ("PREMIUM".equals(spot) || (subs != null && subs)) { %>
+                                <% if ("PREMIUM".equals(spotType) || (subs != null && subs)) { %>
                                     <button class="btn"
-                                        onclick="washVehicle('<%= spot %>', <%= subs != null && subs %>)">
+                                        onclick="washVehicle('<%= plate %>')">
                                         Washable
                                     </button>
                                 <% } else { %>-<% } %>
                             </td>
                         </tr>
-                        <% } %>
-                        <% if (parkedVehicles.isEmpty()) { %>
+                        <% } } else { %>
                         <tr><td colspan="4">Belum ada kendaraan</td></tr>
                         <% } %>
                         </tbody>
@@ -372,9 +373,15 @@ document.querySelectorAll('input[name="licensePlate"]').forEach(i => {
 </script>
 
 <script>
-function washVehicle(spotType, isSubs) {
-    if (spotType === 'PREMIUM') alert("Kendaraan premium sedang dicuci!");
-    else if (isSubs) alert("Kendaraan langganan sedang dicuci!");
+function washVehicle(plate) {
+    if (plate) {
+        // ✅ Tampilkan notifikasi sesuai permintaan lama
+        if (plate.startsWith("P")) {
+            alert("Kendaraan premium sedang dicuci!");
+        } else {
+            alert("Kendaraan langganan sedang dicuci!");
+        }
+    }
 }
 </script>
 

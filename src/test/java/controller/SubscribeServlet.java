@@ -1,7 +1,7 @@
 package controller;
 
-import util.ParkingManager;
-
+import dao.SubscriptionDAO;
+import dao.VehicleDAO;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import javax.servlet.annotation.WebServlet;
@@ -18,35 +18,72 @@ public class SubscribeServlet extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = request.getSession();
-        
-        // Ambil ParkingManager dari application context
-        ParkingManager manager =
-                (ParkingManager) getServletContext().getAttribute("manager");
 
-        if (manager == null) {
-            manager = new ParkingManager();
-            getServletContext().setAttribute("manager", manager);
-        }
+        VehicleDAO vehicleDAO = new VehicleDAO();
+        SubscriptionDAO subscriptionDAO = new SubscriptionDAO();
 
         String license = request.getParameter("licensePlate");
         String durationStr = request.getParameter("duration");
 
+        // Validasi input
         if (license == null || license.trim().isEmpty() || durationStr == null) {
             session.setAttribute("msg", "❌ Data langganan tidak lengkap.");
-            response.sendRedirect("home.jsp");
+            response.sendRedirect("dashboard-petugas.jsp");
             return;
         }
 
-        license = license.toUpperCase().trim();
-        int duration = Integer.parseInt(durationStr);
+        license = license.trim().toUpperCase();
+        int duration;
+        try {
+            duration = Integer.parseInt(durationStr);
+        } catch (NumberFormatException e) {
+            session.setAttribute("msg", "❌ Durasi langganan tidak valid.");
+            response.sendRedirect("dashboard-petugas.jsp");
+            return;
+        }
 
-        // ================= LOGIKA ASLI (TIDAK DIUBAH) =================
+        // === 1. Pastikan kendaraan ADA di tabel `vehicles` ===
+        if (!vehicleDAO.existsByPlate(license)) {
+            // Coba cari di database langsung via ID
+            int vehicleId = vehicleDAO.getVehicleIdByPlate(license);
+            if (vehicleId == -1) {
+                session.setAttribute("msg", "❌ Kendaraan " + license + " tidak ditemukan di database. Pastikan kendaraan sudah diparkir atau terdaftar.");
+                response.sendRedirect("dashboard-petugas.jsp");
+                return;
+            }
+        }
+
+        // === 2. Ambil vehicleId dengan pasti ===
+        int vehicleId = vehicleDAO.getVehicleIdByPlate(license);
+        if (vehicleId <= 0) {
+            session.setAttribute("msg", "❌ ID kendaraan tidak valid untuk plat: " + license);
+            response.sendRedirect("dashboard-petugas.jsp");
+            return;
+        }
+
+        // === 3. Cek apakah langganan sudah ada (opsional) ===
+        if (subscriptionDAO.hasActiveSubscription(vehicleId)) {
+            session.setAttribute("msg", "⚠️ Kendaraan " + license + " sudah memiliki langganan aktif.");
+            response.sendRedirect("dashboard-petugas.jsp");
+            return;
+        }
+
+        // === 4. Hitung tanggal langganan ===
         LocalDate start = LocalDate.now();
         LocalDate expiry = start.plusMonths(duration);
-        manager.registerSubscription(license, start, expiry);
-        // ===============================================================
 
-        // ================= TAMBAHAN UNTUK LAPORAN =====================
+        // === 5. Simpan ke database ===
+        System.out.println("🔍 [SubscribeServlet] Mencoba simpan langganan: vehicleId=" + vehicleId + ", start=" + start + ", expiry=" + expiry);
+        boolean saved = subscriptionDAO.addSubscription(vehicleId, start, expiry);
+
+        if (!saved) {
+            session.setAttribute("msg", "❌ Gagal menyimpan langganan ke database. Cek log untuk detail error.");
+            response.sendRedirect("dashboard-petugas.jsp");
+            return;
+        }
+
+        // === 6. UI & Notifikasi ===
+        @SuppressWarnings("unchecked")
         List<Map<String, Object>> subs =
             (List<Map<String, Object>>) session.getAttribute("subscriptionTransactions");
 
@@ -54,33 +91,22 @@ public class SubscribeServlet extends HttpServlet {
             subs = new ArrayList<>();
         }
 
-        SimpleDateFormat sdf =
-            new SimpleDateFormat(
-                "EEEE dd-MM-yyyy, HH:mm:ss",
-                new Locale("id","ID")
-            );
-
+        SimpleDateFormat sdf = new SimpleDateFormat("EEEE dd-MM-yyyy, HH:mm:ss", new Locale("id", "ID"));
         Map<String, Object> trx = new HashMap<>();
         trx.put("plate", license);
         trx.put("vehicleType", "LANGGANAN");
         trx.put("startDate", sdf.format(new Date()));
-        trx.put("endDate", expiry.toString());
+        trx.put("endDate", expiry.toString()); // typo fixed: was "expiry"
         trx.put("fee", 1000000);
 
         subs.add(trx);
         session.setAttribute("subscriptionTransactions", subs);
 
-        // TAMBAH KE PENDAPATAN HARIAN
         Double revenue = (Double) session.getAttribute("todayRevenue");
         if (revenue == null) revenue = 0.0;
         session.setAttribute("todayRevenue", revenue + 1000000);
-        // ===============================================================
 
-        session.setAttribute(
-            "msg",
-            "✅ Langganan untuk " + license + " aktif hingga " + expiry + "!"
-        );
-
+        session.setAttribute("msg", "✅ Langganan untuk " + license + " aktif hingga " + expiry + "!");
         response.sendRedirect("dashboard-petugas.jsp");
     }
 }

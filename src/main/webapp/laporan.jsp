@@ -142,7 +142,6 @@ th {
 
     <nav class="menu">
         <a href="dashboard-petugas.jsp">📊 Dashboard</a>
-        <a href="#">🅿️ Slot Parkir</a>
         <a href="laporan.jsp">📄 Laporan</a>
         <a href="login.jsp">🚪 Logout</a>
     </nav>
